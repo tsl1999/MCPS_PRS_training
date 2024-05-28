@@ -4,7 +4,8 @@ rm(list=ls())
 library(dplyr)
 working_directory<-"/well/emberson/users/hma817/projects/MCPS_PRS_training"
 setwd(working_directory)
-
+dir.create(paste(working_directory,"/Testing_data",sep=""))
+dir.create(paste(working_directory,"/Training_data",sep=""))
 internal_validation_path<-paste(working_directory,"/Testing_data",sep="")
 Training_testing_path<-paste(working_directory,"/Training_data",sep="")
 data_path<-paste(working_directory,"/data",sep="")

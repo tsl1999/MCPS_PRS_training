@@ -10,7 +10,7 @@ echo start extracting phenotype
 CURDIR=/well/emberson/users/hma817/projects/MCPS_PRS_training
 WORKFLOWDIR=/well/emberson/shared/workflows/gwas/topmed-imputed
 
-cd CURDIR 
+cd $CURDIR 
 echo $PWD
 module load R/3.6.2-foss-2019b
 

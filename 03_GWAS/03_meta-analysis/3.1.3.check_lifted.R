@@ -4,14 +4,15 @@ rm(list=ls())
 library(dplyr)
 library(data.table)
 path<-"/well/emberson/users/hma817/projects/MCPS_PRS_training/external_data/GWAS_sources"
-cc4d<-fread(paste(path,"/cc4d_1KG_additive_2015_METAL_input.txt",sep=""))
-bbj<-fread(paste(path,"/BBJCAD_2020_METAL_input.txt",sep=""))
-UKB<-fread(paste(path,"/CAD_UKBIOBANK_METAL_input.txt",sep=""))
+cc4d<-fread(paste(path,"/cc4d_1KG_additive_2015_ucsc_meta-analysis_input.txt",sep=""))
+bbj<-fread(paste(path,"/BBJCAD_2020_ucsc_meta-analysis_input.txt",sep=""))
+UKB<-fread(paste(path,"/CAD_UKBIOBANK_ucsc_meta-analysis_input.txt",sep=""))
 
 
 cc4d_unlifted<-fread(paste(path,"/cc4d_1KG_additive_2015_unlifted_up.bed",sep=""))
 bbj_unlifted<-fread(paste(path,"/BBJCAD_2020_unlifted_up.bed",sep=""))
 UKB_unlifted<-fread(paste(path,"/CAD_UKBIOBANK_unlifted_up.bed",sep=""))
+
 
 duplicate_cc4d<-cc4d[cc4d$marker%in%cc4d$marker[duplicated(cc4d$marker)]]
 

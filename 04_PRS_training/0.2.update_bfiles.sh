@@ -6,7 +6,7 @@
 #SBATCH --ntasks=23
 #SBATCH --cpus-per-task=1
 #SBATCH --array=1-10
-#SBATCH --out /well/emberson/users/hma817/projects/MCPS_PRS_training/04_PRS_training/2.LDPred/out/fold%a/update_bfiles.out
+#SBATCH --out /well/emberson/users/hma817/projects/MCPS_PRS_training/04_PRS_training/out/fold%a/update_bfiles.out
 
 ##later when stramline the process this file should be in 1.PRSice as now P+T also uses subset bfiles now
 
@@ -26,4 +26,5 @@ srun --ntasks=1 --nodes=1 --cpus-per-task=1 plink2 --bfile $genotype_files/mcps-
 
 done
 wait
+
 

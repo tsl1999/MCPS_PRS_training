@@ -2,7 +2,7 @@
 #SBATCH  -A emberson.prj
 #SBATCH --job-name="cv_regenie"
 #SBATCH  -p long
-#SBATCH --mem=100GB
+#SBATCH --mem=5GB
 #SBATCH --array=1-10
 #SBATCH  -o /well/emberson/users/hma817/projects/MCPS_PRS_training/03_GWAS/02_run_gwas/out/fold%a/run_regenie.out
 #SBATCH  -e /well/emberson/users/hma817/projects/MCPS_PRS_training/03_GWAS/02_run_gwas/out/fold%a/run_regenie.err

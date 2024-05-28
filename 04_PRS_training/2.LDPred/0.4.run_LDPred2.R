@@ -61,6 +61,7 @@ cat("\n Creating temporary file at ", tmp, "this file will be removed once LD ma
 # Initialize variables for storing the LD score and LD matrix
 corr <- NULL
 ld <- NULL
+maf_all<-NULL
 # We want to know the ordering of samples in the bed file 
 info_snp <- NULL
 fam.order <- NULL
@@ -87,16 +88,20 @@ for (chr_id in 1:22) {
   cat("\n reading in 1kg CM information...")
   POS2 <- snp_asGeneticPos(CHR, POS, dir = onekg_genetics)
   ind.row <- rows_along(genotype)
-  maf <- as.numeric(arg[6])#input MAF threshold
-  cat("\n MAF threshold set as ", maf)
+  maf <- snp_MAF(genotype, ind.row = ind.row, ind.col = tmp_snp1$`_NUM_ID_`, ncores = NCORES)
+  #maf_thr <- 1 / sqrt(length(ind.row))
+  #maf <- as.numeric(arg[6])#input MAF threshold
+  
+  cat("\n MAF threshold set as ", as.numeric(arg[6]))
+
   # df_beta <- tmp_snp [tmp_snp$Freq1> maf, ]
-  df_beta1 <- tmp_snp1 [tmp_snp1$Freq1> maf, ]
+  df_beta1 <- tmp_snp1 [maf> as.numeric(arg[6]), ]
   cat("\n", nrow(df_beta1)," SNPs retained based on MAF threshold.")
   info_snp <- rbind(info_snp, df_beta1 )#bind all retained snps into one data frame
   # calculate LD
   # Extract SNPs that are included in the chromosome
   ind.chr <- which(df_beta1$chr == chr_id)
-  ind.chr2 <- tmp_snp1$`_NUM_ID_`[ind.chr]
+  ind.chr2 <- df_beta1$`_NUM_ID_`[ind.chr]
   # Calculate the LD
   corr0 <- snp_cor(
     genotype,
@@ -108,9 +113,11 @@ for (chr_id in 1:22) {
   if (chr_id == 1) {
     ld <- Matrix::colSums(corr0^2)
     corr <- as_SFBM(corr0, tmp, compact = TRUE)
+    maf_all<-c(maf)
   } else {
     ld <- c(ld, Matrix::colSums(corr0^2))
     corr$add_columns(corr0, nrow(corr))
+    maf_all<-c(maf_all,maf)
   }
   # We assume the fam order is the same across different chromosomes
   if(is.null(fam.order)){
@@ -121,6 +128,20 @@ for (chr_id in 1:22) {
 
 df_beta1 <- info_snp[,c("beta", "beta_se", "n_eff","n_eff1", "_NUM_ID_")]
 cat("\n\n Total SNPs retained:", nrow(df_beta1) )
+
+cat("\n saving...",paste0(output_path,"/",arg[5],"/retainedSNPs",".rds"))
+saveRDS(info_snp,paste0(output_path,"/",arg[5],"/retainedSNPs",".rds"))
+
+cat("\n saving...",paste0(output_path,"/",arg[5],"/ldcorr",".rds"))
+saveRDS(corr,paste0(output_path,"/",arg[5],"/ldcorr",".rds"))
+
+
+cat("\n saving...",paste0(output_path,"/",arg[5],"/ld",".rds"))
+saveRDS(ld,paste0(output_path,"/",arg[5],"/ld",".rds"))
+
+cat("\n saving...",paste0(output_path,"/",arg[5],"/maf",".rds"))
+saveRDS(maf_all,paste0(output_path,"/",arg[5],"/maf",".rds"))
+
 
 
 #calculate h2 for LDPred input
@@ -209,11 +230,14 @@ for(chr_id in 1:22){
   }
 }
 
-
+grid.param$name<-paste(grid.param$p,grid.param$h2,grid.param$sparse,sep="_")
+colnames(pred_grid)<-grid.param$name
+colnames(beta_grid)<-grid.param$name
+rownames(beta_grid)<-info_snp$marker.ss
 cat("\n saving...",paste0(output_path,"/",arg[5],"/ldpred-grid-beta_",i,".rds"))
 saveRDS(beta_grid,paste0(output_path,"/",arg[5],"/ldpred-grid-beta_",i,".rds"))
 cat("\n saving...",paste0(output_path,"/",arg[5],"/ldpred-grid-pred_",i,".rds"))
-saveRDS(pred_grid,paste0(output_path,"/",arg[5],"/ldpred-grid-pred_,",i,".rds"))
+saveRDS(pred_grid,paste0(output_path,"/",arg[5],"/ldpred-grid-pred_",i,".rds"))
 
 #auto------------------------------------------------------------------------
 # Get adjusted beta from the auto model
@@ -257,9 +281,6 @@ saveRDS(pred_grid,paste0(output_path,"/",arg[5],"/ldpred-grid-pred_,",i,".rds"))
 #cat("\n saving...",paste0(output_path,"/",arg[5],"ldpred-auto-pred.rds"))
 # saveRDS(pred_auto,paste0(output_path,"/",arg[5],"ldpred-auto-pred.rds"))
 
-cat("\n saving...",paste0(output_path,"/",arg[5],"/retainedSNPs_",i,".rds"))
-saveRDS(info_snp,paste0(output_path,"/",arg[5],"/retainedSNPs_",i,".rds"))
-
 
 cat("\n saving...",paste0(output_path,"/",arg[5],"/ldsc_",i,".rds"))
 saveRDS(ldsc,paste0(output_path,"/",arg[5],"/ldsc_",i,".rds"))
@@ -279,9 +300,9 @@ saveRDS(fam.order,paste0(output_path,"/",arg[5],"/participants_order_",i,".rds")
 #save participants order just to double check participants are in the correct order
 
 
-cat("\n removing temporary file....")
-file.remove(paste(tmp_name, ".sbk",sep=""))
 #unlink(paste(tmp, ".sbk",sep=""), recursive = FALSE, force = T)
 #total snps input for LD matrix 
+cat("\n removing temporary file....")
+file.remove(paste(tmp_name, ".sbk",sep=""))
 cat("\n done", format(Sys.time(), "%a %Y-%b-%d, %X "))
 sink()#close log file

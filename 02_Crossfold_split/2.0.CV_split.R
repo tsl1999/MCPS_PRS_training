@@ -4,7 +4,7 @@ rm(list=ls())
 library(dplyr)
 working_directory<-"/well/emberson/users/hma817/projects/MCPS_PRS_training"
 setwd(working_directory)
-source("/well/emberson/users/hma817/projects/MCPS_PRS_training/0.1utils.R")
+source("/well/emberson/users/hma817/projects/MCPS_PRS_training/02_Crossfold_split/0.1utils.R")
 
 data_path<-paste(working_directory,"/Training_data",sep="")
 data<-readRDS(paste(data_path,"/Fulldata_training_CAD_EPA_80.rds",sep=""))
@@ -30,5 +30,5 @@ saveRDS(cv_split_prop,paste(cvdata_path,"/CAD_EPA/fullcvdata_train_validation_pr
 check_ID<-c()
 for(i in 1:10){check_ID<-c(check_ID,cv_split[[i]]$vallidation$IID)}
 length(unique(check_ID))
-sum(!check_ID%in%data$IID)
-sum(data$IID%in%check_ID)
+print(sum(!check_ID%in%data$IID))
+print(sum(data$IID%in%check_ID))

@@ -56,7 +56,7 @@ EFFECT   beta\
 STDERR   se\
 PVAL     pval\n")
 
-cat("\nPROCESS ",paste(arg[2],"/data_mcps_meta-analysis_input.txt",sep="") )
+cat("\nPROCESS ",paste(arg[2],"/data_mcps_meta-analysis_input_nodup.txt",sep="") )
 
 #process other GWAS sources
 for  (i in 1: length (input_files)){

@@ -18,7 +18,7 @@ data_mcps<-fread(paste(arg[1],"/output_files/combined-gwas-results.txt.gz",sep="
 data_pheno<-readRDS(paste(arg[2],"/gwas_data.rds",sep=""))
 data_mcps$marker<-paste("chr",data_mcps$ID,sep="")
 data_mcps$marker_no_allele<-paste("chr",data_mcps$CHROM,":",data_mcps$GENPOS,sep="")
-cat("saving data to...",paste(arg[1],"/dat_a_mcps_meta-analysis_input.txt",sep=""))
+cat("saving data to...",paste(arg[1],"/data_a_mcps_meta-analysis_input.txt",sep=""))
 data_mcps$OR<-exp(data_mcps$BETA)
 data_mcps$OR_95L<-exp(data_mcps$BETA-1.96*data_mcps$SE)
 data_mcps$OR_95U<-exp(data_mcps$BETA+1.96*data_mcps$SE)
@@ -34,7 +34,7 @@ for(i in 1:nrow(data_mcps)){
     data_mcps$case[i]<-data_mcps$case[i]*prop
     data_mcps$control[i]<-data_mcps$control[i]*prop
   }}
-
-
-write.table(data_mcps,paste(arg[1],"/data_mcps_meta-analysis_input.txt",sep=""),col.names = T,row.names = F,quote=F)
+#updated version: remove duplicates
+data_mcps_up<-data_mcps[!data_mcps$marker_no_allele%in%data_mcps$marker_no_allele[duplicated(data_mcps$marker_no_allele)],]
+write.table(data_mcps_up,paste(arg[1],"/data_mcps_meta-analysis_input_nodup.txt",sep=""),col.names = T,row.names = F,quote=F)
 
