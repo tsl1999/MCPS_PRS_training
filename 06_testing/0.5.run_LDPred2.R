@@ -24,7 +24,7 @@ setwd(working_directory)
 dir.create(output_path)
 dir.create(paste0(output_path,"/",arg[5]))
 
-#sink(arg[4])#setup log file
+sink(arg[4])#setup log file
 
 
 #readin GWAS summary stats------------------------------------------------
@@ -37,7 +37,7 @@ sumstats$a0<-toupper(sumstats$a0)
 cat("\nGWAS feature \n")
 print(str(sumstats))
 
-#calculating effective sample size for binary traits
+#calculating effective sample size for binary traits 
 sumstats$n_eff <- 4 / (1 / sumstats$case + 1 / sumstats$control)#binary traits
 sumstats$n_eff1<-quantile(8 / sumstats$beta_se^2, 0.999)#recommeded for meta-analysis GWAS
 
@@ -62,7 +62,7 @@ cat("\n Creating temporary file at ", tmp, "this file will be removed once LD ma
 corr <- NULL
 ld <- NULL
 maf_all<-NULL
-# We want to know the ordering of samples in the bed file
+# We want to know the ordering of samples in the bed file 
 info_snp <- NULL
 fam.order <- NULL
 
@@ -91,7 +91,7 @@ for (chr_id in 1:22) {
   maf <- snp_MAF(genotype, ind.row = ind.row, ind.col = tmp_snp1$`_NUM_ID_`, ncores = NCORES)
   #maf_thr <- 1 / sqrt(length(ind.row))
   #maf <- as.numeric(arg[6])#input MAF threshold
-
+  
   cat("\n MAF threshold set as ", as.numeric(arg[6]))
 
   # df_beta <- tmp_snp [tmp_snp$Freq1> maf, ]
@@ -144,9 +144,9 @@ saveRDS(maf_all,paste0(output_path,"/",arg[5],"/maf",".rds"))
 
 
 
-
 #calculate h2 for LDPred input
-for ( i in c("norm","meta-analysis")){
+#for ( i in c("norm","meta-analysis"))
+  i=arg[9]
   cat("\n Computing LDPred results using effective sample size ", i," ......")
   if(i=="norm"){
     sample_size_in<-df_beta1$n_eff
@@ -161,7 +161,7 @@ for ( i in c("norm","meta-analysis")){
   h2_est <- ldsc[["h2"]]
 
   cat("\n\n heritability estimated:",h2_est)
-  h2_est<-ifelse(h2_est<=0,0.0001,h2_est)
+
 
 #inf-----------------------------------------------------
 cat("\n\n Computation if LDPred-Inf....")
@@ -193,13 +193,13 @@ saveRDS(pred_inf,paste0(output_path,"/",arg[5],"/ldpred-inf-pred_",i,".rds"))
 ##grid--------------------------------
 # Prepare data for grid model
 cat("\n\n Computation if LDPred-grid....")
-#input_p<-as.numeric(strsplit(arg[7],split=",")[[1]])
-#p_seq <- signif(seq_log(input_p[1], 1, length.out = input_p[2]), 2)
-p_seq <- as.numeric(strsplit(arg[7],split=",")[[1]])
 
+#input_p<-as.numeric(strsplit(arg[7],split=",")[[1]])
+p_seq <- as.numeric(strsplit(arg[7],split=",")[[1]])
 cat("\n input p-values: ",p_seq)
 input_h2<-as.numeric(strsplit(arg[8],split=",")[[1]])
 #h2_seq <- round(h2_est * c(input_h2), 4)
+
 cat("\n input h2s: ",input_h2)
 
 grid.param <-
@@ -299,7 +299,7 @@ saveRDS(ld,paste0(output_path,"/",arg[5],"/ld_",i,".rds"))
 
 cat("\n saving...",paste0(output_path,"/",arg[5],"/summstats_up_",i,".rds"))
 saveRDS(sumstats_up,paste0(output_path,"/",arg[5],"/summstats_up_",i,".rds"))
-saveRDS(fam.order,paste0(output_path,"/",arg[5],"/participants_order_",i,".rds"))}
+saveRDS(fam.order,paste0(output_path,"/",arg[5],"/participants_order_",i,".rds"))
 #save participants order just to double check participants are in the correct order
 
 
@@ -308,4 +308,4 @@ saveRDS(fam.order,paste0(output_path,"/",arg[5],"/participants_order_",i,".rds")
 cat("\n removing temporary file....")
 file.remove(paste(tmp_name, ".sbk",sep=""))
 cat("\n done", format(Sys.time(), "%a %Y-%b-%d, %X "))
-#sink()#close log file
+sink()#close log file

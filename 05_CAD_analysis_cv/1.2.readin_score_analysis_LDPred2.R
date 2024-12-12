@@ -14,15 +14,30 @@ print(table(data_in$CAD_EPA))
 
 prs_inf_norm<-readRDS(paste(working_directory,"/ldpred-inf-pred_norm.rds",sep=""))
 prs_inf_meta<-readRDS(paste(working_directory,"/ldpred-inf-pred_meta-analysis.rds",sep=""))
+prs_inf_norm_standardised<-(prs_inf_norm-mean(prs_inf_norm))/sd(prs_inf_norm)
+prs_inf_meta_standardised<-(prs_inf_meta-mean(prs_inf_meta))/sd(prs_inf_meta)
 
 data_in_grid_norm<-data.frame(readRDS(paste(working_directory,"/ldpred-grid-pred_norm.rds",sep="")))
-colnames(data_in_grid_norm)<-sub("X","prs_gridnorm_",colnames(data_in_grid_norm))
+colnames(data_in_grid_norm)<-paste("grid_norm_",colnames(data_in_grid_norm),sep="")
 data_in_grid_meta<-data.frame(readRDS(paste(working_directory,"/ldpred-grid-pred_meta-analysis.rds",sep="")))
-colnames(data_in_grid_meta)<-sub("X","prs_gridmeta_",colnames(data_in_grid_meta))
+colnames(data_in_grid_meta)<-paste("grid_meta_",colnames(data_in_grid_meta),sep="")
 data_in_grid_norm_na<-data_in_grid_norm[,!is.na(colSums(data_in_grid_norm))]
 data_in_grid_meta_na<-data_in_grid_meta[,!is.na(colSums(data_in_grid_meta))]
 
-prs<-data.frame(participants_order$family.ID,participants_order$sample.ID,prs_inf_norm,prs_inf_meta,data_in_grid_norm_na,data_in_grid_meta_na)
+for (i in 1:(ncol(data_in_grid_norm_na))){
+  cat("PRS: ",colnames(data_in_grid_norm_na)[i])
+  data_in_grid_norm_na[,paste(colnames(data_in_grid_norm_na)[i],"_standardised",sep="")]<-
+    (data_in_grid_norm_na[,i]-mean(data_in_grid_norm_na[,i]))/sd(data_in_grid_norm_na[,i])
+}
+
+for (i in 1:(ncol(data_in_grid_meta_na))){
+  cat("PRS: ",colnames(data_in_grid_meta_na)[i])
+  data_in_grid_meta_na[,paste(colnames(data_in_grid_meta_na)[i],"_standardised",sep="")]<-
+    (data_in_grid_meta_na[,i]-mean(data_in_grid_meta_na[,i]))/sd(data_in_grid_meta_na[,i])
+}
+prs<-data.frame(participants_order$family.ID,participants_order$sample.ID,prs_inf_norm_standardised,prs_inf_meta_standardised,data_in_grid_norm_na,data_in_grid_meta_na)
+
+
 colnames(prs)[1:2]<-c("FID","IID")
 
 #already standardised
@@ -35,7 +50,7 @@ cat("number of PRS input:",ncol(prs)-2,"\n")
 #analysis--------------------------------------------------------------------------
 source("/gpfs3/well/emberson/users/hma817/projects/MCPS_PRS_training/05_CAD_analysis_cv/0.1.utils.R")
 data_analysis_up<-data_analysis%>%select(FID,IID,AGE,SEX,WHRATIO,SBP,DBP,EDU_LEVEL,
-                                         smokegp2,diabetes_at_baseline,CAD_EPA,contains(c("prs")))
+                                         smokegp2,diabetes_at_baseline,CAD_EPA,contains(c("standardised")))
 partial_adjustments=c("AGE","SEX")
 full_adjustments = c("AGE","SEX","WHRATIO","SBP","DBP","EDU_LEVEL","smokegp2","diabetes_at_baseline")
 
@@ -47,7 +62,7 @@ print(model_withoutPRS)
 
 
 #PRS----------------------------------------------------------------------------------
-prs_p<-colnames(data_analysis_up)[which(colnames(data_analysis_up)%flike%"prs_")]
+prs_p<-colnames(data_analysis_up)[which(colnames(data_analysis_up)%flike%"_standardised")]
 
 model_output_partial<-create_output_table_log(
   trainsplit = F,data=data_analysis_up,adjustments=partial_adjustments,outcome="CAD_EPA",
@@ -68,3 +83,11 @@ saveRDS(model_output_full,paste(working_directory,"/logistic_model_output_full.r
 
 
 
+model_output_simple<-create_output_table_log(
+  trainsplit = F,data=data_analysis_up,adjustments=NULL,outcome="CAD_EPA",
+  roc=F,se=T,prs = prs_p,dp=4)
+model_output_simple<-model_output_simple[order(model_output_simple$AUC,decreasing = T),]
+
+
+cat("max AUC:",max(model_output_simple$AUC))
+saveRDS(model_output_simple,paste(working_directory,"/logistic_model_output_simple.rds",sep=""))

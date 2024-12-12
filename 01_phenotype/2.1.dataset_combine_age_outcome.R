@@ -22,26 +22,30 @@ phenotype<-data.frame(fread(paste(phenotype_path, '/extracted-phenotypes.txt',se
 
 phenotype_na_rm<-phenotype[is.na(phenotype$IID)!=T&is.na(phenotype$PC1)!=T&is.na(phenotype$SEX)!=T&is.na(phenotype$AGE)!=T,]#140,829, included PC here
 
-#data preprocess for GWAS---------------------------------
-
+##data preprocess for GWAS---------------------------------
+outcome_1<-ifelse(arg[4]=="NULL",0,strsplit(arg[4],split=",")[[1]])
+outcome_1<-outcome_1[outcome_1 != "0"]
 ## unverified mortality------------------------------------
-Mortality<-data.frame(fread(paste(mcps_data_path,"v2.1_DEATHS.csv",sep = "")))
+Mortality<-data.frame(fread(paste(mcps_data_path,"v3.2_DEATHS.csv",sep = "")))
+colnames(Mortality)[1]<-"REGISTRO"
 mortality<-Mortality[!Mortality$grade%in%c("D","E","F","U","Z"),]
 mortality_remove<-Mortality[Mortality$grade%in%c("D","E","F","U","Z"),]
 table(mortality$grade,exclude=NULL)
 table(mortality_remove$grade)
 reg_link<-data.frame(fread(paste(mcps_data_path,"RGN_LINK_IID.csv",sep = "")))
-mortality_keep<-merge(mortality[,c(1,3,13)],reg_link[,c(1,3)], by="REGISTRO")
-mortality_remove<-left_join(mortality_remove[,c(1,3,13)],reg_link[,c(1,3)], by="REGISTRO")
+mortality_keep<-merge(mortality[,c("REGISTRO","grade","DATE_OF_DEATH","date_of_birth",outcome_1)],
+                      reg_link[,c(1,3)], by="REGISTRO")
+mortality_remove<-left_join(mortality_remove[,c("REGISTRO","grade","DATE_OF_DEATH","date_of_birth",outcome_1)],reg_link[,c(1,3)], by="REGISTRO")
 
 data<-left_join(phenotype_na_rm,mortality_keep,by="IID")
 data<-data[!data$IID%in%mortality_remove$IID,]#138609
+print(sum(data$FLAG_DUPLICATE=="X"))
 print(nrow(data))
 #-remove age over age_cut-----------------------------------------
 data_rm_age_cut<-data[data$AGE<as.numeric(age_cut),]
 print(nrow(data_rm_age_cut))
 
-data_rm_age_cut$date_since_recruitment<-as.Date("2020-12-31","%Y-%m-%d")-as.Date(data_rm_age_cut$DATE_RECRUITED,"%d%b%Y")
+data_rm_age_cut$date_since_recruitment<-as.Date("2022-09-30","%Y-%m-%d")-as.Date(data_rm_age_cut$DATE_RECRUITED,"%d%b%Y")
 data_rm_age_cut$yr_since_recruitment<-as.numeric(data_rm_age_cut$date_since_recruitment)/365.25
 data_rm_age_cut$yrs_died_recruitment<-(as.Date(data_rm_age_cut$DATE_OF_DEATH,"%d/%m/%Y")-as.Date(data_rm_age_cut$DATE_RECRUITED,"%d%b%Y"))/365.25
 

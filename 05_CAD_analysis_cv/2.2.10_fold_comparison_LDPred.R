@@ -7,7 +7,8 @@ setwd(results_directory)
 sink("model_AUC_comparison.log")
 model_gwas_compare_partial<-c()
 model_gwas_compare_full<-c()
-for(gwas in c("cc4d_bbj","ukb_cc4d","ukb_cc4d_bbj")){
+for(gwas in c("cc4d_bbj","ukb_cc4d","ukb_cc4d_bbj","ukb_ckb","ukb_ckb_cc4d_bbj",
+              "his_ukb_cc4d", "his_all", "his_ukb_ckb_cc4d_bbj","his_ukb_cc4d_bbj")){
   model_compare_partial<-c()
   model_compare_full<-c()
   for(fold in 1:10){
@@ -94,15 +95,21 @@ for(gwas in c("cc4d_bbj","ukb_cc4d","ukb_cc4d_bbj")){
   colnames(final_compare_full)[2:3]<-paste(colnames(final_compare_full)[2:3],gwas,sep="_")
   
   
-  if(which(gwas==c("cc4d_bbj","ukb_cc4d","ukb_cc4d_bbj"))==1){
+  if(which(gwas==c("cc4d_bbj","ukb_cc4d","ukb_cc4d_bbj","ukb_ckb","ukb_ckb_cc4d_bbj",
+                   "his_ukb_cc4d", "his_all", "his_ukb_ckb_cc4d_bbj","his_ukb_cc4d_bbj"))==1){
     model_gwas_compare_partial<-final_compare_partial
     model_gwas_compare_full<-final_compare_full
   }else{
     new_row_partial_final<-data.frame(c(final_compare_partial$parameter[!final_compare_partial$parameter%in% model_gwas_compare_partial$parameter]))
     colnames(new_row_partial_final)[1]<-"parameter"
     rownames(new_row_partial_final)<-new_row_partial_final$parameter
-    new_row_partial_final[,2:ncol(model_gwas_compare_partial)]<-NA
-    colnames(new_row_partial_final)[2:ncol(model_gwas_compare_partial)]<-colnames(model_gwas_compare_partial)[2:ncol(model_gwas_compare_partial)]
+    if(nrow(new_row_partial_final)>=1){
+      new_row_partial_final[,2:ncol(model_gwas_compare_partial)]<-NA
+      colnames(new_row_partial_final)[2:ncol(model_gwas_compare_partial)]<-colnames(model_gwas_compare_partial)[2:ncol(model_gwas_compare_partial)]
+    }
+    
+    
+    
     model_gwas_compare_partial_new<-rbind(model_gwas_compare_partial,new_row_partial_final)
     model_gwas_compare_partial<-left_join(model_gwas_compare_partial_new,final_compare_partial,by="parameter")
     
@@ -110,8 +117,11 @@ for(gwas in c("cc4d_bbj","ukb_cc4d","ukb_cc4d_bbj")){
     new_row_full_final<-data.frame(c(final_compare_full$parameter[!final_compare_full$parameter%in% model_gwas_compare_full$parameter]))
     colnames(new_row_full_final)[1]<-"parameter"
     rownames(new_row_full_final)<-new_row_full_final$parameter
-    new_row_full_final[,2:ncol(model_gwas_compare_full)]<-NA
-    colnames(new_row_full_final)[2:ncol(model_gwas_compare_full)]<-colnames(model_gwas_compare_full)[2:ncol(model_gwas_compare_full)]
+    if(nrow(new_row_full_final)>=1){
+      new_row_full_final[,2:ncol(model_gwas_compare_full)]<-NA
+      colnames(new_row_full_final)[2:ncol(model_gwas_compare_full)]<-colnames(model_gwas_compare_full)[2:ncol(model_gwas_compare_full)]
+    }
+    
     model_gwas_compare_full_new<-rbind(model_gwas_compare_full,new_row_full_final)
     model_gwas_compare_full<-left_join(model_gwas_compare_full_new,final_compare_full,by="parameter")
     
@@ -129,3 +139,46 @@ saveRDS( model_gwas_compare_full,paste(results_directory,"/gwas_meanAUC_full.rds
 
 sink()
 #all r2=0.9 and p=0.005 here
+
+
+
+
+library(stringr)
+library(ggplot2)
+for(i in c("partial","full")){
+  gwas_meanAUC<-readRDS(paste(results_directory,"/gwas_meanAUC_",i,".rds",sep=""))
+  gwas_meanAUC$parameter<-sub("_standardised","",gwas_meanAUC$parameter)
+  colnames(gwas_meanAUC)[seq(2,18,2)]<-sub("meanAUC_","",colnames(gwas_meanAUC)[seq(2,18,2)])
+  
+  gwas_meanAUC$h2<-sub("h2_\\s*", "",str_extract(gwas_meanAUC$parameter, "h2_\\s*\\d*\\.\\d+"))
+  gwas_meanAUC$p<-sub("p_", "",str_extract(gwas_meanAUC$parameter, "p_\\d+\\.?\\d*e?.?\\d*"))
+  gwas_meanAUC$p<-sub("e.", "e-",gwas_meanAUC$p)
+  gwas_meanAUC$p<-sub("_", "",gwas_meanAUC$p)
+  gwas_meanAUC$p<-as.numeric(gwas_meanAUC$p)
+  gwas_meanAUC$h2<-as.numeric(gwas_meanAUC$h2)
+  gwas_meanAUC$sparse<-factor(str_extract(gwas_meanAUC$parameter, "TRUE|FALSE"),levels = c("TRUE","FALSE"))
+  
+  for(j in 1:9){
+    gwas_meanAUC[,2*j]<-ifelse(gwas_meanAUC[,2*j+1]>0,NA,gwas_meanAUC[,2*j])
+  }
+  
+  gwas_meanAUC_up<-gwas_meanAUC[,c(1,seq(2,18,2),21:23)]
+  
+  
+  dt_melt_standardised<-melt(gwas_meanAUC_up,c("p","h2","sparse","parameter"),value.name = "mean AUC")
+  dt_melt_standardised<-dt_melt_standardised[is.na(dt_melt_standardised$`mean AUC`)==F,]
+  dt_melt_inf<-dt_melt_standardised[dt_melt_standardised$parameter%in%c("prs_inf_meta","prs_inf_norm"),]
+  dt_melt_standardised<-dt_melt_standardised[!dt_melt_standardised$parameter%in%c("prs_inf_meta","prs_inf_norm"),]
+  dt_melt_standardised<-dt_melt_standardised[ as.numeric(dt_melt_standardised$h2)<=0.1,]
+  dt_melt_standardised$h2<-as.factor(dt_melt_standardised$h2)
+  p<-ggplot(data = dt_melt_standardised, aes(x=p,y=`mean AUC`,linetype=sparse,color=h2)) + 
+    geom_line()+facet_wrap( ~ variable)+theme_bw()
+  
+  CairoPNG(filename =paste(results_directory,"/gwas_meanAUC_compare_",i,".png",sep=""),res=200,width = 25,height = 15,units = "cm" )
+  print(p)
+  dev.off()
+  
+  
+  
+  
+}

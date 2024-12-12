@@ -12,7 +12,7 @@ library(forestploter)
 library(grid)
 library(Epi)
 library(survival)
-library(survminer)
+#library(survminer)
 "%&%" <- function(a,b) paste0(a,b)
 
 
@@ -303,8 +303,8 @@ create_output_table_log_multi<-function(trainsplit=F,data,train_data=NULL,
     
     prs_col<-which(colnames(train)%in%colnames(train%>%select(contains(prs_in))))
     num_prs<-length(prs_col)
-    model_or_output<-data.frame(matrix(ncol=5,nrow=num_prs))
-    colnames(model_or_output)[1:5]<-c("OR","LR","UR","pval","se")
+    model_or_output<-data.frame(matrix(ncol=6,nrow=num_prs))
+    colnames(model_or_output)[1:6]<-c("OR","LR","UR","pval","se","vif")
     
     for(i in 1:num_prs){
       rownames(model_or_output)[i]<-colnames(train)[prs_col[i]]
@@ -313,6 +313,7 @@ create_output_table_log_multi<-function(trainsplit=F,data,train_data=NULL,
     
     model_output<-run_glm(data=train,adjustments,outcome,
                           colnames(train)[prs_col],int)
+    vif<-VIF( model_output)
     pred<-predict(model_output,test,type='response')
     pred.obj<-prediction(pred,test[,outcome])
     perf.obj<-performance(pred.obj,"tpr","fpr")
@@ -343,8 +344,8 @@ create_output_table_log_multi<-function(trainsplit=F,data,train_data=NULL,
       pval<-format(signif(pval,dp),nsmall=dp)
       se<-summary(model_output)$coefficients[,"Std. Error"][colnames(train)[prs_col[i]]]
       or_ci<-format(ci(model_output,roundup=dp,row=colnames(train)[prs_col[i]]),nsmall=dp)
-      model_or_output[i,1:5]<-
-        c(or_ci[1],or_ci[2],or_ci[3],pval,se)
+      model_or_output[i,1:6]<-
+        c(or_ci[1],or_ci[2],or_ci[3],pval,se,vif[i])
     }
     
     

@@ -18,13 +18,19 @@ cat("set working directory as", working_directory)
 setwd(working_directory)
 
 cat("\n readin data...")
-data_in<-fread("data_mcps_meta-analysis_input.txt")
+data_in<-fread(arg[2])#"data_mcps_meta-analysis_input.txt"
 
 #data_in_up<-data_in[!data_in$marker_no_allele%in%data_in$marker_no_allele[duplicated(data_in$marker_no_allele)],]
 # 
 # for(i in 1:22){
 #   cat("chromosome",i)
 #   data_chr<-data_in[data_in$chr==i,]
+if(is.na(arg[3])==F&arg[3]=="metal"){
+  colnames(data_in)[c(1:6,10:12)]<-c("chr","position","marker_no_allele","effect_allele","non_effect_allele","effect_allele_freq",
+                       "beta","se","pval")
+  data_in$effect_allele<-toupper(data_in$effect_allele)
+  data_in$non_effect_allele<-toupper(data_in$non_effect_allele)
+}
   data_in$identifier<-rownames(data_in)
   cat(" \n set up GRange objects...")
   my_snps1<-GPos(Rle(c(data_in$chr), c(rep(1,nrow(data_in)))), pos=c(data_in$position),identifier=data_in$identifier)
@@ -57,12 +63,18 @@ colnames(data_save)<-c("SNP","A1","A2","BETA","SE")
 
 
 cat("saving data......")
-write.table(data_up,"data_mcps_rsid.txt",quote = F,col.names = T,row.names = F,sep="\t")
 
-write.table(data_save,"data_mcps_prscsx.txt",quote = F,col.names = T,row.names = F,sep="\t")
+extracted_string <- sub("^metal_(.*)1\\.txt$", "\\1", arg[2])
 
+if(arg[2]=="data_mcps_meta-analysis_input_nodup.txt"){
+  write.table(data_up,"data_mcps_rsid.txt",quote = F,col.names = T,row.names = F,sep="\t")
+  
+  write.table(data_save,"data_mcps_prscsx.txt",quote = F,col.names = T,row.names = F,sep="\t")
+  
+}else{
 
-
+write.table(data_save,paste0(extracted_string,"_prscsx.txt"),quote = F,col.names = T,row.names = F,sep="\t")
+}
 
 
 

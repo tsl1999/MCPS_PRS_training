@@ -1,20 +1,23 @@
 #!/bin/bash
 #SBATCH  -A emberson.prj
 #SBATCH --job-name="prsice"
-#SBATCH  -p long
+#SBATCH  -p short
 #SBATCH --mem=20GB
 #SBATCH --out /well/emberson/users/hma817/projects/MCPS_PRS_training/06_testing/out/prsice_full.out
 
 CURDIR=/well/emberson/users/hma817/projects/MCPS_PRS_training
 prsice_DIR=$CURDIR/Software/PRSice
 input_gwas=$CURDIR/Training_data/gwas_regenie/CAD_EPA_80_fulltraining/meta-analysis
-output_DIR=$CURDIR/Testing_data/PRS
+
+genotype_files=$CURDIR/Testing_data/bfiles
 mkdir $CURDIR/Testing_data/PRS
+mkdir $CURDIR/Testing_data/PRS/1.P+T
+output_DIR=$CURDIR/Testing_data/PRS/1.P+T
 module purge
-module load R/4.2.1-foss-2022a
+
 
 #need gwas name, r2 and p-value
-module load R/4.2.1-foss-2022a
+module load R/4.3.2-gfbf-2023a
 
 Rscript $prsice_DIR/PRSice.R --dir . \
     --prsice $prsice_DIR/PRSice_linux \
@@ -36,6 +39,6 @@ Rscript $prsice_DIR/PRSice.R --dir . \
     --all-score \
     --fastscore \
     --print-snp \
-    --out $output_DIR/P_T_r2"$2"_p"$3"
+    --out $output_DIR/"$1"/P_T_r2"$2"_p"$3"
 
 #p-value will start from 0.5 with interval of 5e-5

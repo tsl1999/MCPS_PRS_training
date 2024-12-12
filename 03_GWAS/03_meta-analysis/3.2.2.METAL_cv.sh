@@ -16,34 +16,51 @@ pheno_dir=$CURDIR/Training_data/crossfold/CAD_EPA/$SLURM_ARRAY_TASK_ID
 
 
 
-module load R/4.2.1-foss-2022a
-
+#module load R/4.2.1-foss-2022a
+module load R/4.3.2-gfbf-2023a
 Rscript $SCRIPT_DIR/3.0.2.prep_mcps_data.R $mcps_gwas $pheno_dir
 
 wait
 
 module purge
-
+# 
 # srun --ntasks=1 --nodes=1 --cpus-per-task=1 bash $SCRIPT_DIR/3.0.4.run_METAL.sh fold_$SLURM_ARRAY_TASK_ID \
 # $EXTERNAL_GWAS/CAD_UKBIOBANK_ucsc_meta-analysis_input.txt,$EXTERNAL_GWAS/cc4d_1KG_additive_2015_ucsc_meta-analysis_input.txt \
-# ukb_cc4d  &
+# ukb_cc4d  
 # 
 # 
 # srun --ntasks=1 --nodes=1 --cpus-per-task=1 bash $SCRIPT_DIR/3.0.4.run_METAL.sh fold_$SLURM_ARRAY_TASK_ID \
 # $EXTERNAL_GWAS/CAD_UKBIOBANK_ucsc_meta-analysis_input.txt,$EXTERNAL_GWAS/cc4d_1KG_additive_2015_ucsc_meta-analysis_input.txt,$EXTERNAL_GWAS/BBJCAD_2020_ucsc_meta-analysis_input.txt \
-# ukb_cc4d_bbj  & 
+# ukb_cc4d_bbj  
 # 
 # srun --ntasks=1 --nodes=1 --cpus-per-task=1 bash $SCRIPT_DIR/3.0.4.run_METAL.sh fold_$SLURM_ARRAY_TASK_ID \
 # $EXTERNAL_GWAS/cc4d_1KG_additive_2015_ucsc_meta-analysis_input.txt,$EXTERNAL_GWAS/BBJCAD_2020_ucsc_meta-analysis_input.txt \
-# cc4d_bbj  &
-
- bash $SCRIPT_DIR/3.0.4.run_METAL.sh fold_$SLURM_ARRAY_TASK_ID \
-$EXTERNAL_GWAS/CAD_UKBIOBANK_ucsc_meta-analysis_input.txt,$EXTERNAL_GWAS/CKB_IHD_meta-analysis_input.txt \
-ukb_ckb  
+# cc4d_bbj  
+# 
+#  bash $SCRIPT_DIR/3.0.4.run_METAL.sh fold_$SLURM_ARRAY_TASK_ID \
+# $EXTERNAL_GWAS/CAD_UKBIOBANK_ucsc_meta-analysis_input.txt,$EXTERNAL_GWAS/CKB_IHD_meta-analysis_input.txt \
+# ukb_ckb
+# 
+# bash $SCRIPT_DIR/3.0.4.run_METAL.sh fold_$SLURM_ARRAY_TASK_ID \
+# $EXTERNAL_GWAS/CAD_UKBIOBANK_ucsc_meta-analysis_input.txt,$EXTERNAL_GWAS/CKB_IHD_meta-analysis_input.txt,$EXTERNAL_GWAS/cc4d_1KG_additive_2015_ucsc_meta-analysis_input.txt,$EXTERNAL_GWAS/BBJCAD_2020_ucsc_meta-analysis_input.txt  \
+# ukb_ckb_cc4d_bbj
+# 
 
 bash $SCRIPT_DIR/3.0.4.run_METAL.sh fold_$SLURM_ARRAY_TASK_ID \
-$EXTERNAL_GWAS/CAD_UKBIOBANK_ucsc_meta-analysis_input.txt,$EXTERNAL_GWAS/CKB_IHD_meta-analysis_input.txt,$EXTERNAL_GWAS/cc4d_1KG_additive_2015_ucsc_meta-analysis_input.txt,$EXTERNAL_GWAS/BBJCAD_2020_ucsc_meta-analysis_input.txt  \
-ukb_ckb_cc4d_bbj  
+$EXTERNAL_GWAS/HIS_meta-analysis_input.txt,$EXTERNAL_GWAS/CAD_UKBIOBANK_ucsc_meta-analysis_input.txt,$EXTERNAL_GWAS/CKB_IHD_meta-analysis_input.txt,$EXTERNAL_GWAS/cc4d_1KG_additive_2015_ucsc_meta-analysis_input.txt,$EXTERNAL_GWAS/BBJCAD_2020_ucsc_meta-analysis_input.txt  \
+his_ukb_ckb_cc4d_bbj
+
+bash $SCRIPT_DIR/3.0.4.run_METAL.sh fold_$SLURM_ARRAY_TASK_ID \
+$EXTERNAL_GWAS/HIS_meta-analysis_input.txt  \
+his_all
+
+bash $SCRIPT_DIR/3.0.4.run_METAL.sh fold_$SLURM_ARRAY_TASK_ID \
+$EXTERNAL_GWAS/HIS_meta-analysis_input.txt,$EXTERNAL_GWAS/CAD_UKBIOBANK_ucsc_meta-analysis_input.txt,$EXTERNAL_GWAS/cc4d_1KG_additive_2015_ucsc_meta-analysis_input.txt \
+his_ukb_cc4d
+
+bash $SCRIPT_DIR/3.0.4.run_METAL.sh fold_$SLURM_ARRAY_TASK_ID \
+$EXTERNAL_GWAS/HIS_meta-analysis_input.txt,$EXTERNAL_GWAS/CAD_UKBIOBANK_ucsc_meta-analysis_input.txt,$EXTERNAL_GWAS/cc4d_1KG_additive_2015_ucsc_meta-analysis_input.txt,$EXTERNAL_GWAS/BBJCAD_2020_ucsc_meta-analysis_input.txt  \
+his_ukb_cc4d_bbj
 
 #wait
 

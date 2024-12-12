@@ -12,17 +12,17 @@ script_dir=$CURDIR/04_PRS_training/3.PRS-CSx
 module load R/4.2.1-foss-2022a
 # 
 # 
-# Rscript $script_dir/0.3.update_rsid_external_gwas.R \
-# BBJCAD_2020_ucsc_meta-analysis_input 1 2 
+# Rscript $script_dir/0.3.update_rsid_external_gwas.R 37 \
+# BBJCAD_2020_ucsc_meta-analysis_input 1 2 marker_no_allele
 
 
 
-# Rscript $script_dir/0.3.update_rsid_external_gwas.R \
-# CC4D_UKB_meta_analysis1 1 2 
-
-Rscript $script_dir/0.3.update_rsid_external_gwas.R 38 \
-CKB_IHD_meta-analysis_input 2 3 marker_no_allele
-
-Rscript $script_dir/0.3.update_rsid_external_gwas.R 38 \
-BBJ_CKB_meta_analysis1 1 2 MarkerName
+# Rscript $script_dir/0.3.update_rsid_external_gwas.R 37 \
+# CC4D_UKB_meta_analysis1 1 2 MarkerName
+# 
+# Rscript $script_dir/0.3.update_rsid_external_gwas.R 38 \
+# CKB_IHD_meta-analysis_input 2 3  meta-input #marker_no_allele
+# 
+# Rscript $script_dir/0.3.update_rsid_external_gwas.R 38 \
+# BBJ_CKB_meta_analysis1 1 2  #meta MarkerName
 

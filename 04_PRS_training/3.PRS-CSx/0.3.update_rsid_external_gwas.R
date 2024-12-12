@@ -74,16 +74,25 @@ data_in$rsid<-data.frame(my_snps1)[,5]
 
 data_in_up<-data_in[is.na(data_in$rsid)==F,]
 data_in_up_na<-data_in[is.na(data_in$rsid)==T,]
-data_in_up_na$rsid<-data_in_up_na[,arg[5]]
+if(arg[5]=="meta-input"){
+  data_in_up_na$rsid<-data_in_up_na[,"marker_no_allele"]
+}else if (arg[5]=="meta") {
+  data_in_up_na$rsid<-data_in_up_na[,"MarkerName"]
+}
+
 data_in_up<-rbind(data_in_up,data_in_up_na)
-data_up<-data_in_up[order(data_in_up$chr,data_in_up$pos,decreasing = F),]
+data_up<-data_in_up[order(data_in_up$identifier,decreasing = F),]
 
-
+if(arg[5]=="meta-input"){
 data_save<-data_up%>%select(rsid,effect_allele,non_effect_allele,beta,se)
+}else if (arg[5]=="meta"){
+  data_save<-data_up%>%select(rsid,Allele1,Allele2,Effect,StdErr)
+}
+
 
 colnames(data_save)<-c("SNP","A1","A2","BETA","SE")
 data_save$A1<-toupper(data_save$A1)
 data_save$A2<-toupper(data_save$A2)
-cat("\saving data...")
+cat("\n saving data...")
 write.table(data_save,paste(gwas_name,"_prscsx.txt",sep=""),quote = F,col.names = T,row.names = F,sep="\t")
 

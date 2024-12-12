@@ -7,7 +7,7 @@ mcps_gwas=$CURDIR/Training_data/gwas_regenie/CAD_EPA_80_"$1"
 SCRIPT_DIR=$CURDIR/03_GWAS/03_meta-analysis
 
 module purge
-module load R/4.2.1-foss-2022a 
+module load R/4.3.2-gfbf-2023a 
 
 echo prepare metal script
 

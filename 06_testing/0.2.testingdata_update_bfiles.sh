@@ -7,8 +7,7 @@
 
 ##later when stramline the process this file should be in 1.PRSice as now P+T also uses subset bfiles now
 
-module load PLINK/2.00a3.1-GCC-11.2.0
-
+module load PLINK/2.00a2.3_x86_64
 
 CURDIR=/well/emberson/users/hma817/projects/MCPS_PRS_training
 genotype_files=$CURDIR/data/bfiles

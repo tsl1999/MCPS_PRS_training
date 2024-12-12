@@ -57,7 +57,7 @@ names(prs_combine_phi_gwas_list)[length(prs_combine_phi_gwas_list)]<-paste(gwas[
 #analysis----------------------------------------------------------------------------------------------
 data_analysis<-left_join(data_in,prs_combine_phi_gwas,by=c("IID","FID"))
 data_analysis_up<-data_analysis%>%select(FID,IID,AGE,SEX,WHRATIO,SBP,DBP,EDU_LEVEL,
-                                         smokegp2,diabetes_at_baseline,CAD_EPA,contains(c("META")))
+                                         smokegp2,diabetes_at_baseline,CAD_EPA,contains(c("prs")))
 
 source("/gpfs3/well/emberson/users/hma817/projects/MCPS_PRS_training/05_CAD_analysis_cv/0.1.utils.R")
 
@@ -89,6 +89,12 @@ model_output_full<-create_output_table_log(
 meta_model_output_full<-model_output_full[order(model_output_full$AUC,decreasing = T),]
 #cat("max AUC:",max(model_output_full$AUC))
 
+model_output_simple<-create_output_table_log(
+  trainsplit = F,data=data_analysis_up,adjustments=NULL,outcome="CAD_EPA",
+  roc=F,se=T,prs = prs_p,dp=4)
+
+meta_model_output_simple<-model_output_simple[order(model_output_simple$AUC,decreasing = T),]
+#cat("max AUC:",max(model_output_full$AUC))
 #linear combination--------------------------------------------------------------------
 
 model_output_partial<-create_output_table_log_multi(trainsplit=F,data=data_analysis,
@@ -101,7 +107,8 @@ meta_auc_partial<-meta_model_output_partial[,c(colnames(auc_partial))]
 auc_partial_all<-rbind(auc_partial,meta_auc_partial)
 auc_partial_all<-auc_partial_all[order(auc_partial_all$AUC,decreasing = T),]
 or_partial<-model_output_partial$odds_ratio
-or_partial_meta<-meta_model_output_partial[,c(colnames(or_partial[[1]]))]
+
+or_partial_meta<-meta_model_output_partial[,c(colnames(or_partial[[1]])[1:5])]
 or_partial_all<-or_partial
 or_partial_all[[length(or_partial_all)+1]]<-or_partial_meta
 names(or_partial_all)[length(or_partial_all)]<-"meta_or"
@@ -120,7 +127,7 @@ meta_auc_full<-meta_model_output_full[,c(colnames(auc_full))]
 auc_full_all<-rbind(auc_full,meta_auc_full)
 auc_full_all<-auc_full_all[order(auc_full_all$AUC,decreasing = T),]
 or_full<-model_output_full$odds_ratio
-or_full_meta<-meta_model_output_full[,c(colnames(or_full[[1]]))]
+or_full_meta<-meta_model_output_full[,c(colnames(or_full[[1]])[1:5])]
 or_full_all<-or_full
 or_full_all[[length(or_full_all)+1]]<-or_full_meta
 names(or_full_all)[length(or_full_all)]<-"meta_or"
@@ -131,12 +138,6 @@ saveRDS(or_full_all,paste(working_directory,"/logistic_model_output_full_OR.rds"
 
 
 
-
-
-
-
-
-
-
-
-
+saveRDS(meta_model_output_partial,paste(working_directory,"/logistic_model_output_partial.rds",sep=""))
+saveRDS(meta_model_output_full,paste(working_directory,"/logistic_model_output_full.rds",sep=""))
+saveRDS(meta_model_output_simple,paste(working_directory,"/logistic_model_output_simple.rds",sep=""))

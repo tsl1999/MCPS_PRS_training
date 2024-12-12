@@ -4,6 +4,7 @@
 #SBATCH --mem-per-cpu=15G
 #SBATCH --cpus-per-task=4
 #SBATCH --ntasks=22
+#SBATCH --time=09:30:00
 #SBATCH --array=1-10
 #SBATCH  -o /well/emberson/users/hma817/projects/MCPS_PRS_training/04_PRS_training/3.PRS-CSx/out/fold%a/prscsx%x.out
 
@@ -43,11 +44,10 @@ mkdir $CURDIR/Training_data/PRS/3.PRS-CSx/fold$SLURM_ARRAY_TASK_ID/$SLURM_JOB_NA
 
 phi="$1"
 
-for chrom in $(seq 1 22);
-do 
+for chrom in $(seq 1 22);do
 echo chromosome $chrom
 echo phi "$1"
-srun --ntasks=1 --nodes=1 --cpus-per-task=$SLURM_CPUS_PER_TASK python $software_dir/PRScsx.py \
+srun --ntasks=1 --cpu-bind=none --cpus-per-task=$SLURM_CPUS_PER_TASK python $software_dir/PRScsx.py \
 --ref_dir=$LDreference \
 --bim_prefix=$genotype_files/mcps-freeze150k_rsid_chr$chrom \
 --sst_file=$mcps_gwas_dir/data_mcps_prscsx.txt,"$2" \
@@ -81,9 +81,10 @@ timestamp
 timestamp
        plink2 --bfile $bfiles/mcps-subset-chr$chrom \
       --score $prs_result_dir/"$gwas_phi"/prscsx_"$pop"_effect_"$phi".txt \
-      1 3 5  no-mean-imputation cols=+scoresums list-variants --out  $prs_result_dir/"$gwas_phi"/score_"$chrom"_"$pop"
+      1 3 5  no-mean-imputation cols=+scoresums list-variants --out  $prs_result_dir/"$gwas_phi"/score_"$chrom"_"$pop"& 
 
       done
+      wait
     done
 module load  R/4.2.1-foss-2022a
 timestamp

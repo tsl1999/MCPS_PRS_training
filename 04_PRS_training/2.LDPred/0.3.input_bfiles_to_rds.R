@@ -12,5 +12,7 @@ working_directory<-"/well/emberson/users/hma817/projects/MCPS_PRS_training/04_PR
 genotype_directory<-arg[1]
 
 setwd(working_directory)
+file.remove(paste(genotype_directory,"/mcps-subset-chr",arg[2],".bk",sep=""))
+file.remove(paste(genotype_directory,"/mcps-subset-chr",arg[2],".rds",sep=""))
 
 snp_readBed(paste(genotype_directory,"/mcps-subset-chr",arg[2],".bed",sep=""))

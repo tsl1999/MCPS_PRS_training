@@ -90,6 +90,7 @@ def step_1_job():
 #SBATCH -A emberson.prj
 #SBATCH -J regenie-step1
 #SBATCH -p long
+#SBATCH --time=1-10:00:00
 #SBATCH -c 6
 #SBATCH -o %s.out
 #SBATCH -e %s.err

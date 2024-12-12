@@ -9,8 +9,10 @@
 #SBATCH --out /well/emberson/users/hma817/projects/MCPS_PRS_training/04_PRS_training/out/fold%a/update_bfiles.out
 
 ##later when stramline the process this file should be in 1.PRSice as now P+T also uses subset bfiles now
-
-module load PLINK/2.00a3.1-GCC-11.2.0
+module load Anaconda3/2024.02-1
+eval "$(conda shell.bash hook)"
+conda activate R4.2.1
+#module load PLINK/2.00a3.1-GCC-11.2.0
 
 
 CURDIR=/well/emberson/users/hma817/projects/MCPS_PRS_training

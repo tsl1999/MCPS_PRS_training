@@ -8,8 +8,9 @@ pheno_directory<-arg[2]#"/well/emberson/users/hma817/projects/MCPS_PRS_training/
 data_in<-readRDS(paste(pheno_directory,"/validation_data_for_downstream_analysis.rds",sep=""))
 model_output_all_partial<-c()
 model_output_all_full<-c()
+model_output_all_simple<-c()
 cat("validation data from ",paste(pheno_directory,"/validation_data_for_downstream_analysis.rds",sep="") )
-for (j in seq(0.2,0.9,by=0.1) ){
+for (j in c(seq(0.2,0.9,by=0.1),1 )){
 cat("reading P+T data from ",paste(working_directory,"/",j,".all_score",sep="") )  
 data_score<-fread(paste(working_directory,"/",j,".all_score",sep=""))
 prs_after_clump<-fread(paste(working_directory,"/",j,".snp",sep=""))
@@ -75,14 +76,23 @@ model_output_full<-create_output_table_log(
 #model_output_full<-model_output_full[order(model_output_full$AUC,decreasing = T),]
 cat("max AUC:",max(model_output_full$AUC))
 rownames(model_output_full)<-paste("r2_",j,"_",rownames(model_output_full))
+
 model_output_all_partial<-rbind(model_output_all_partial,model_output_partial)
 model_output_all_full<-rbind(model_output_all_full,model_output_full)
 
+model_output_simple<-create_output_table_log(
+  trainsplit = F,data=data_analysis_up,adjustments=NULL,outcome="CAD_EPA",
+  roc=F,se=T,prs = prs_p,dp=4)
+#model_output_partial<-model_output_partial[order(model_output_partial$AUC,decreasing = T),]
+rownames(model_output_simple)<-paste("r2_",j,"_",rownames(model_output_simple))
+
+cat("max AUC:",max(model_output_simple$AUC))
+model_output_all_simple<-rbind(model_output_all_simple,model_output_simple)
 }
 
 saveRDS(model_output_all_partial,paste(working_directory,"/logistic_model_output_partial.rds",sep=""))
 saveRDS(model_output_all_full,paste(working_directory,"/logistic_model_output_full.rds",sep=""))
-
+saveRDS(model_output_all_simple,paste(working_directory,"/logistic_model_output_simple.rds",sep=""))
 
 # for(i in 1:10){
 # 
@@ -97,7 +107,7 @@ saveRDS(model_output_all_full,paste(working_directory,"/logistic_model_output_fu
 # data_in$diabetic_lab<-ifelse(is.na(data_in$BASE_HBA1C)==F&data_in$BASE_HBA1C>=6.5,1,0)
 # data_in$diabetic_lab<-factor(data_in$diabetic_lab,levels = c(0,1))
 # data_in$diabetes_at_baseline<-ifelse(data_in$BASE_DIABETES==1|data_in$diabetic_lab==1|data_in$anti_diabetic_medication==1,1,0)
-# data_in$diabetes_at_baseline<-factor(data_analysis$diabetes_at_baselin,levels=c(0,1))
+# data_in$diabetes_at_baseline<-factor(data_in$diabetes_at_baselin,levels=c(0,1))
 # data_in$EDU_LEVEL<-factor(data_in$EDU_LEVEL,levels = c(1:4))
 # data_in$smokegp2<-factor(data_in$smokegp2,levels = c(1:5))
 # 
