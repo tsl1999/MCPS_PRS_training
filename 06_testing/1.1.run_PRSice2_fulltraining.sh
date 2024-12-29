@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH  -A emberson.prj
 #SBATCH --job-name="prsice"
-#SBATCH  -p short
+#SBATCH  -p long
 #SBATCH --mem=20GB
 #SBATCH --out /well/emberson/users/hma817/projects/MCPS_PRS_training/06_testing/out/prsice_full.out
 
@@ -13,11 +13,15 @@ genotype_files=$CURDIR/Testing_data/bfiles
 mkdir $CURDIR/Testing_data/PRS
 mkdir $CURDIR/Testing_data/PRS/1.P+T
 output_DIR=$CURDIR/Testing_data/PRS/1.P+T
-module purge
+mkdir $output_DIR/"$1"
 
 
 #need gwas name, r2 and p-value
-module load R/4.3.2-gfbf-2023a
+
+module load Anaconda3/2024.02-1
+eval "$(conda shell.bash hook)"
+conda activate R4.2.1
+
 
 Rscript $prsice_DIR/PRSice.R --dir . \
     --prsice $prsice_DIR/PRSice_linux \
@@ -39,6 +43,6 @@ Rscript $prsice_DIR/PRSice.R --dir . \
     --all-score \
     --fastscore \
     --print-snp \
-    --out $output_DIR/"$1"/P_T_r2"$2"_p"$3"
+    --out $output_DIR/"$1"/"$2"
 
 #p-value will start from 0.5 with interval of 5e-5

@@ -27,18 +27,23 @@ IFS=', ' eur_var=($eur)
 IFS=', ' ckb_var=($ckb)
 IFS=', ' eas_var=($eas)
 
-sbatch  --job-name=his_eur_eas_1e_04 $script_dir/1.3.PRS-CSx_fulltraining.sh \
+sbatch  --job-name=his_eur_eas_1e-04 $script_dir/1.3.PRS-CSx_fulltraining.sh \
 1e-04 ${eur_var[0]},${eas_var[0]} \
 ${eur_var[1]},${eas_var[1]} ${eur_var[2]},${eas_var[2]} his_all 251400
 
-sbatch  --job-name=mcps_bbj_eur_1e_04 $script_dir/1.3.PRS-CSx_fulltraining.sh \
-1e-04 ${eur_var[0]},${bbj_var[0]} \
-${eur_var[1]},${bbj_var[1]} ${eur_var[2]},${bbj_var[2]}
+sbatch  --job-name=his_eur_eas_1e-02 $script_dir/1.3.PRS-CSx_fulltraining.sh \
+1e-02 ${eur_var[0]},${eas_var[0]} \
+${eur_var[1]},${eas_var[1]} ${eur_var[2]},${eas_var[2]} his_all 251400
 
-sbatch  --job-name=mcps_eur_eas_1e_04 $script_dir/1.3.PRS-CSx_fulltraining.sh \
-1e-04 ${eur_var[0]},${eas_var[0]} \
-${eur_var[1]},${eas_var[1]} ${eur_var[2]},${eas_var[2]}
-# module load  R/4.2.1-foss-2022a
+
+# sbatch  --job-name=mcps_bbj_eur_1e_04 $script_dir/1.3.PRS-CSx_fulltraining.sh \
+# 1e-04 ${eur_var[0]},${bbj_var[0]} \
+# ${eur_var[1]},${bbj_var[1]} ${eur_var[2]},${bbj_var[2]}
+# 
+# sbatch  --job-name=mcps_eur_eas_1e_04 $script_dir/1.3.PRS-CSx_fulltraining.sh \
+# 1e-04 ${eur_var[0]},${eas_var[0]} \
+# ${eur_var[1]},${eas_var[1]} ${eur_var[2]},${eas_var[2]}
+# # module load  R/4.2.1-foss-2022a
 # 
 # 
 # Rscript $CURDIR/04_PRS_training/3.PRS-CSx/0.7.combine_chromosome_effect.R \

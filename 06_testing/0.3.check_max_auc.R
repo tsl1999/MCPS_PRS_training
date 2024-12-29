@@ -6,9 +6,12 @@ suppressMessages(library(dplyr))
 working_directory<-"/well/emberson/users/hma817/projects/MCPS_PRS_training/Training_data/PRS"
 setwd(working_directory)
 
-pt_results<-readRDS(paste(working_directory,"/1.P+T/gwas_meanAUC_full.rds",sep=""))
-ldpred_results<-readRDS(paste(working_directory,"/2.LDPred/gwas_meanAUC_full.rds",sep=""))
-prscsx_results<-readRDS(paste(working_directory,"/3.PRS-CSx/model_compare_full.rds",sep=""))
+for(x in c("simple","partial","full")){
+  
+print(paste("\n",x," model"))
+pt_results<-readRDS(paste(working_directory,"/1.P+T/gwas_meanAUC_",x,".rds",sep=""))
+ldpred_results<-readRDS(paste(working_directory,"/2.LDPred/gwas_meanAUC_",x,".rds",sep=""))
+prscsx_results<-readRDS(paste(working_directory,"/3.PRS-CSx/model_compare_",x,".rds",sep=""))
 
 max(pt_results[,2:10],na.rm = T)
 
@@ -49,3 +52,4 @@ print(max_ldpred[max_ldpred$AUC==max(max_ldpred$AUC),])
 max_prscsx<-c(prscsx_results[prscsx_results$meanAUC==max(prscsx_results$meanAUC),1],max(prscsx_results$meanAUC))
 cat("3. PRS-CSx \n")
 print(max_prscsx)
+}

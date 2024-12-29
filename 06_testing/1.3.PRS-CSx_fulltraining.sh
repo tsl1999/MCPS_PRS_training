@@ -3,7 +3,7 @@
 #SBATCH  -p short
 #SBATCH --mem-per-cpu=15GB
 #SBATCH  --cpus-per-task=4
-#SBATCH --ntasks=1
+#SBATCH --ntasks=22
 #SBATCH  -o /well/emberson/users/hma817/projects/MCPS_PRS_training/06_testing/out/running_PRS-CSx%x.out
 
 
@@ -51,26 +51,26 @@ fi
 # 
 phi="$1"
 chrom=$SLURM_ARRAY_TASK_ID
-# for chrom in $(seq 1 22);
-# do
-# echo chromosome $chrom
-# echo phi "$1"
-# srun --ntasks=1 --cpu-bind=none --cpus-per-task=$SLURM_CPUS_PER_TASK  python $software_dir/PRScsx.py \
-# --ref_dir=$LDreference \
-# --bim_prefix=$genotype_files/mcps-freeze150k_rsid_chr$chrom \
-# --sst_file=$mcps_gwas_dir/data_mcps_prscsx.txt,"$2" \
-# --n_gwas="$his_n","$4" \
-# --pop=AMR,"$3" \
-# --chrom=$chrom \
-# --phi=$phi \
-# --out_dir=$prs_result_dir/$SLURM_JOB_NAME \
-# --out_name=prscsx \
-# --meta=TRUE \
-# --seed=1000 &
-#  done
-# 
-#  wait
-# 
+for chrom in $(seq 1 22);
+do
+echo chromosome $chrom
+echo phi "$1"
+srun --ntasks=1 --cpu-bind=none --cpus-per-task=$SLURM_CPUS_PER_TASK  python $software_dir/PRScsx.py \
+--ref_dir=$LDreference \
+--bim_prefix=$genotype_files/mcps-freeze150k_rsid_chr$chrom \
+--sst_file=$mcps_gwas_dir/data_mcps_prscsx.txt,"$2" \
+--n_gwas="$his_n","$4" \
+--pop=AMR,"$3" \
+--chrom=$chrom \
+--phi=$phi \
+--out_dir=$prs_result_dir/$SLURM_JOB_NAME \
+--out_name=prscsx \
+--meta=TRUE \
+--seed=1000 &
+ done
+
+ wait
+
 
 gwas_phi=$SLURM_JOB_NAME
 population=AMR,"$3",META
