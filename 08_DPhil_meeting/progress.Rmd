@@ -1,0 +1,283 @@
+---
+title: "PRS training progress"
+author: "Tianshu Liu"
+date: "2024-06-20"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 4
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+working_directory<-"/well/emberson/users/hma817/projects/MCPS_PRS_training"
+```
+
+## Stage 2 Analysis Plan
+
+- **Train test split with ratio 8:2**
+  - testing set not used in any stages of training (seed=1000)
+  
+- **10-fold cross validation split**
+  - Split using simple random sampling, balanced sex and case proportions (seed=1000)
+  - 11 GWAS-es (10 on the cv set and 1 on the big training set)
+  
+- **3 PRS methods**
+   1. Pruning and Thresholding
+   2. LDPred
+   3. PRS-CSx
+
+### Flowchart of data splitting
+```{r fig.width = 10,fig.id = "fig1",fig.height=10,echo=FALSE,out.width="100%"}
+knitr::include_graphics(paste(working_directory,"/08_DPhil_meeting/stage2_flowchart.JPG",sep=""))
+```
+
+### Data split
+
+- the  case proportion is 3.7%  for the whole MCPS data (people age 35-80)
+
+```{r, echo =FALSE}
+library(xlsx)
+data<-readRDS(paste0(working_directory,"/Training_data/crossfold/CAD_EPA/fullcvdata_train_validation_proprtionEPA_28Mar2024.rds"))
+
+for (i in 1: length(data)){
+  cat("\n CV data split proportion for fold", i)
+  print(data[[i]])
+}
+
+```
+
+
+### GWAS + Meta-analysis 
+
+- GWAS performed using Regenie
+- Meta-analysed with case/control (overall N), for running P+T and LDPred:
+  - **CKB (hg38)**: 13,748/62,107 (75,855)
+  - **UKB (hg19)**: 34,541/261,984 (296,525)
+  - **CC4D (hg19)**: 60,801/123,504 (184,305) -- rough estimates
+  - **BBJ (hg19)**: 25,892/142,336 (168,228)
+
+<br>
+
+- GWASes in hg19(GRCh37) genome build were lifted over to GRCh38 (as with MCPS) using **UCSC genome browser liftOver** tool and chain file.
+
+- **Meta-analysis** using METAL (2020-05-05): 
+  1. UKB+CKB+MCPS  
+  2. UKB+CC4D+MCPS 
+  3. UKB+CC4D+BBJ+MCPS  
+  4. UKB+CKB+CC4D+BBJ+MCPS 
+  5. CC4D+BBJ+MCPS
+
+
+## PRS Training
+
+### 1. Pruning and Thresholding
+- Two parameters to control for: r<sup>2</sup> and p-value for GWAS
+  - **r<sup>2</sup>** : 0.2-0.9 in the interval of 0.1 (8)
+  - **p**: 5e-08,5e-07,5e-06,5e-05,5e-04,5e-03,5e-02,1, 0.1-0.9 in the interval of 0.005 (169)
+  - Parameter sets: N=1352
+- Software: PRSice
+Time: 20 hrs for each fold (all 5 GWAS combinations)
+
+- Analysis for each PRS (P+T and LDPred):
+  - All PRSes were standardised
+  - As per what I did when evaluating external PRSes
+  - Partial model adjustments: age and sex
+  - Full model adjustments: + education, SBP, DBP, WHR, smoking, baseline diabetes
+  - Mean AUC over 10 folds
+
+#### Fold 1 analysis results (partial) for CC4D+BBJ_MCPS, first 20 rows
+```{r,echo=FALSE}
+source("/gpfs3/well/emberson/users/hma817/codes/R_TablesFunction_27Sep2022_TL.r")
+library(flextable)
+data<-readRDS(paste0(working_directory,"/Training_data/PRS/1.P+T/fold1/metal_cc4d_bbj/logistic_model_output_partial.rds"))
+data_up<-data[1:20,]
+data_up$parameters<-sub("_standardised","",rownames(data_up))
+data_up<-data_up[,c(13,1:12)]
+flex_data<-my_table(data_up,y=c(1:nrow(data_up)),x=1:ncol(data_up))
+flex_data<-my_theme(flex_data,fontsize = 12,z=1:13,y=1:20, align_x = "center",set_padding = 1)
+flex_data
+```
+
+After repeating this for each fold
+
+#### mean AUC (partial adjustments) for CC4D+BBJ_MCPS, first 20 rows
+
+```{r,echo=FALSE}
+data<-readRDS(paste0(working_directory,"/Training_data/PRS/1.P+T/model_compare_partial_cc4d_bbj.rds"))
+data_up<-data[1:20,]
+data_up$parameter<-sub("_standardised","",data_up$parameter)
+flex_data<-my_table(data_up,y=c(1:nrow(data_up)),x=1:ncol(data_up))
+flex_data<-my_theme(flex_data,fontsize = 15,z=1:ncol(data_up),y=1:nrow(data_up), align_x = "center",set_padding = 1)
+flex_data
+```
+
+Then for each GWAS combinations, repeat the above process
+
+<br>
+
+#### mean AUC for all gwas combinations, first 20 rows
+
+**Full adjustments**
+
+```{r,echo=FALSE}
+data<-readRDS(paste0(working_directory,"/Training_data/PRS/1.P+T/gwas_meanAUC_full.rds"))
+data_up<-data[1:20,]
+data_up$parameter<-sub("_standardised","",data_up$parameter)
+flex_data<-my_table(data_up,y=c(1:nrow(data_up)),x=1:ncol(data_up))
+flex_data<-my_theme(flex_data,fontsize = 12,z=1:ncol(data_up),y=1:nrow(data_up), align_x = "center",set_padding = 1)
+flex_data
+```
+
+
+```{r fig.width = 25,fig.id = "fig1",fig.height=15,echo=FALSE,out.width="100%"}
+knitr::include_graphics(paste0(working_directory,"/Training_data/PRS/1.P+T/gwas_meanAUC_compare_full.png"))
+```
+
+
+### 2.LDpred
+- **LDPred-Inf** uses heritability calculated from validation data 
+- **LDPred-Grid**: Two parameters to control for: heritability and causal p 
+  - **heritability** : 0.01-0.2 by interval of 0.01
+  - **p**: 1e-10 to 1 by log interval 100
+  - **Sparse**: True/False
+  - Parameter sets: 2000
+  - Need effective sample size for each SNP, tried two ways
+    1. *4 / (1 / sumstats$case + 1 / sumstats$control)*
+    2. *quantile(8 / sumstats$beta_se^2, 0.999)*  recommended for meta-analysis GWAS 
+  - NB: some parameter sets may not converge
+- Software: R package **bigsnpr**
+- only SNPs in HapMap3 were retained
+- SNP distance information from 1000 Genome, LD computed in house using validation data
+Time: 12 hrs for each fold (for each GWAS combinations with 20 CPUs/over 200 GB of memories)
+
+Results output format is similar to P+T
+
+#### Fold 1 analysis results (partial) for CC4D+BBJ_MCPS, first 20 rows
+```{r,echo=FALSE}
+source("/gpfs3/well/emberson/users/hma817/codes/R_TablesFunction_27Sep2022_TL.r")
+library(flextable)
+data<-readRDS(paste0(working_directory,"/Training_data/PRS/2.LDPred/fold1/metal_cc4d_bbj/logistic_model_output_partial.rds"))
+data_up<-data[1:20,]
+data_up$parameters<-sub("_standardised","",rownames(data_up))
+data_up<-data_up[,c(13,1:12)]
+flex_data<-my_table(data_up,y=c(1:nrow(data_up)),x=1:ncol(data_up))
+flex_data<-my_theme(flex_data,fontsize = 12,z=1:13,y=1:20, align_x = "center",set_padding = 1)
+flex_data
+```
+
+
+After repeating this for each fold
+
+#### mean AUC (partial adjustments) for CC4D+BBJ_MCPS, first 20 rows
+Due to non-convergence, I also summed up how many folds missing in na_sum, if there is 1 fold AUC missing, the parameter will not be carried forward for comparison 
+
+```{r,echo=FALSE}
+data<-readRDS(paste0(working_directory,"/Training_data/PRS/2.LDPred/model_compare_partial_cc4d_bbj.rds"))
+data<-data[order(data$na_sum,decreasing = F),]
+data_up<-data[1:20,]
+data_up$parameter<-sub("_standardised","",data_up$parameter)
+flex_data<-my_table(data_up,y=c(1:nrow(data_up)),x=1:ncol(data_up))
+flex_data<-my_theme(flex_data,fontsize = 15,z=1:ncol(data_up),y=1:nrow(data_up), align_x = "center",set_padding = 1)
+flex_data
+```
+
+
+#### mean AUC for all gwas combinations, first 20 rows
+
+**Full adjustments**
+
+```{r,echo=FALSE}
+data<-readRDS(paste0(working_directory,"/Training_data/PRS/2.LDPred/gwas_meanAUC_full.rds"))
+data<-data[order(data$na_sum_cc4d_bbj,decreasing = F),]
+data_up<-data[1:20,]
+data_up$parameter<-sub("_standardised","",data_up$parameter)
+flex_data<-my_table(data_up,y=c(1:nrow(data_up)),x=1:ncol(data_up))
+flex_data<-my_theme(flex_data,fontsize = 12,z=1:ncol(data_up),y=1:nrow(data_up), align_x = "center",set_padding = 1)
+flex_data
+```
+
+```{r fig.width = 25,fig.id = "fig1",fig.height=15,echo=FALSE,out.width="100%"}
+knitr::include_graphics(paste0(working_directory,"/Training_data/PRS/2.LDPred/gwas_meanAUC_compare_full.png"))
+```
+
+### 3. PRS-CSx
+- One parameter to control for : **global shrinkage phi** (1e-06, 1e-04, 1e-02, 1)
+- Takes in one GWAS for each input ancestry:
+  - MCPS + BBJ
+  - MCPS + BBJ + UKB
+  - MCPS + BBJ + EUR (UKB-CC4D)
+  - MCPS + UKB
+  - MCPS + UKB + CKB 
+  - MCPS + EUR (UKB-CC4D) + EAS (CKB-BBJ)
+ 
+- Software: R package **PRS-CSx python package**
+- only SNPs in HapMap3 were retained
+- SNP LD reference information from 1000 Genome
+Time: 9 hrs for each fold (for each GWAS combinations with 4 CPUs)
+- PRS-CSx will output two types of PRSes (1. meta-PRS 2.ancestry specific PRS)
+  - meta-PRS: follow the same analysis process as with P+T and LDPred
+  - ancestry-specific PRS: Include all ancestry-specific PRS together in the model to predict CAD
+  - All PRSes were standardised
+
+#### Fold 1 analysis results (partial), first 20 rows
+```{r,echo=FALSE}
+library(flextable)
+source("/gpfs3/well/emberson/users/hma817/codes/R_TablesFunction_27Sep2022_TL.r")
+data<-readRDS(paste0(working_directory,"/Training_data/PRS/3.PRS-CSx/fold1/logistic_model_output_partial_auc.rds"))
+data_up<-data[1:20,]
+data_up$parameters<-rownames(data_up)
+data_up<-data_up[,c(8,1:7)]
+flex_data<-my_table(data_up,y=c(1:nrow(data_up)),x=1:ncol(data_up))
+flex_data<-my_theme(flex_data,fontsize = 12,z=1:ncol(data_up),y=1:20, align_x = "center",set_padding = 1)
+flex_data
+```
+
+#### mean AUC for all gwas combinations, first 20 rows
+
+**Full adjustments**
+
+```{r,echo=FALSE}
+data<-readRDS(paste0(working_directory,"/Training_data/PRS/3.PRS-CSx/model_compare_full.rds"))
+data<-data[order(data$meanAUC,decreasing = T),]
+data_up<-data[1:20,]
+flex_data<-my_table(data_up,y=c(1:nrow(data_up)),x=1:ncol(data_up))
+flex_data<-my_theme(flex_data,fontsize = 12,z=1:ncol(data_up),y=1:nrow(data_up), align_x = "center",set_padding = 1)
+flex_data
+```
+### parameters with the highest AUC in each method
+
+```{r, echo =FALSE}
+source("/gpfs3/well/emberson/users/hma817/projects/MCPS_PRS_training/06_testing/0.3.check_max_auc.R")
+
+```
+
+
+## Internal validation
+
+- Using the parameters of the method that achieved the best AUC results
+- Applying on the full training data (80%)
+- Evaluate on the 20% testing data that was not involved in any stage of the training
+
+### partial adjustments
+```{r,echo=FALSE}
+working_directory="/gpfs3/well/emberson/users/hma817/projects/MCPS_PRS_training"
+source("/gpfs3/well/emberson/users/hma817/codes/R_TablesFunction_27Sep2022_TL.r")
+data<-readRDS(paste0(working_directory,"/Testing_data/testing_model_partial.rds"))
+data<-cbind(rownames(data),data)
+colnames(data)[1]<-"PRS"
+data_up<-data[order(data$AUC,decreasing = T),]
+flex_data<-my_table(data_up,y=c(1:nrow(data_up)),x=1:ncol(data_up))
+flex_data<-my_theme(flex_data,fontsize = 12,z=1:ncol(data_up),y=1:nrow(data_up), align_x = "center",set_padding = 1)
+flex_data
+```
+### full adjustments
+```{r,echo=FALSE}
+data<-readRDS(paste0(working_directory,"/Testing_data/testing_model_full.rds"))
+data<-cbind(rownames(data),data)
+colnames(data)[1]<-"PRS"
+data_up<-data[order(data$AUC,decreasing = T),]
+flex_data<-my_table(data_up,y=c(1:nrow(data_up)),x=1:ncol(data_up))
+flex_data<-my_theme(flex_data,fontsize = 12,z=1:ncol(data_up),y=1:nrow(data_up), align_x = "center",set_padding = 1)
+flex_data
+```
